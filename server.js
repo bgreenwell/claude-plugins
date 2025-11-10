@@ -6,10 +6,16 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
+import { access } from "fs/promises";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// Configuration constants
+const GEMINI_EXEC_TIMEOUT = 120000; // 120 seconds
+const GEMINI_EXEC_MAX_BUFFER = 1024 * 1024 * 10; // 10MB
+const GEMINI_CHECK_TIMEOUT = 5000; // 5 seconds for setup checks
 
 // Standard review prompt templates
 const REVIEW_TEMPLATES = {
@@ -62,13 +68,19 @@ Provide specific suggestions for improvement.`,
  */
 async function checkGeminiCli() {
   try {
-    await execAsync("which gemini");
+    await execFileAsync("gemini", ["--version"], { timeout: GEMINI_CHECK_TIMEOUT });
     return { available: true };
   } catch (error) {
-    return {
-      available: false,
-      error: "gemini-cli not found. Install it first: pip install gemini-cli (or appropriate install command)"
-    };
+    // Check if it's a "command not found" error
+    if (error.code === 127 || error.code === 'ENOENT' ||
+        (error.message && error.message.toLowerCase().includes('not found'))) {
+      return {
+        available: false,
+        error: "gemini-cli not found. Install it first: pip install gemini-cli (or appropriate install command)"
+      };
+    }
+    // Command exists but --version failed for another reason, consider it available
+    return { available: true };
   }
 }
 
@@ -78,11 +90,13 @@ async function checkGeminiCli() {
 async function checkGeminiConfigured() {
   try {
     // Try a minimal test command
-    const { stdout, stderr } = await execAsync("gemini -p 'test' 2>&1", { timeout: 5000 });
-    
+    const { stdout, stderr } = await execFileAsync("gemini", ["-p", "test"], {
+      timeout: GEMINI_CHECK_TIMEOUT
+    });
+
     // Check for auth errors in both stdout and stderr
     const output = (stdout + stderr).toLowerCase();
-    if (output.includes('not authenticated') || 
+    if (output.includes('not authenticated') ||
         output.includes('login required') ||
         output.includes('authentication failed') ||
         output.includes('api key')) {
@@ -91,7 +105,7 @@ async function checkGeminiConfigured() {
         error: "Gemini not authenticated. Authenticate with: gemini auth login (or set API key if preferred)"
       };
     }
-    
+
     return { configured: true };
   } catch (error) {
     // If command runs but times out, assume it's working
@@ -106,74 +120,52 @@ async function checkGeminiConfigured() {
 }
 
 /**
- * Build gemini-cli command with files and prompt
- */
-function buildGeminiCommand(prompt, files = [], additionalContext = "") {
-  let command = "gemini -p ";
-  
-  // Build the full prompt
-  let fullPrompt = prompt;
-  if (additionalContext) {
-    fullPrompt += `\n\nAdditional context: ${additionalContext}`;
-  }
-  
-  // Escape the prompt for shell
-  const escapedPrompt = fullPrompt.replace(/'/g, "'\\''");
-  command += `'${escapedPrompt}'`;
-  
-  // Add file references with @ syntax
-  if (files && files.length > 0) {
-    for (const file of files) {
-      command += ` @${file}`;
-    }
-  }
-  
-  return command;
-}
-
-/**
  * Execute gemini-cli review
  */
 async function executeGeminiReview(reviewType, target, criteria = [], context = "") {
   // Get the appropriate template
   const template = REVIEW_TEMPLATES[reviewType] || REVIEW_TEMPLATES.custom;
-  
+
   // Build the prompt
-  let prompt = template;
+  let fullPrompt = template;
   if (criteria && criteria.length > 0) {
-    prompt += `\n\nSpecific focus areas: ${criteria.join(", ")}`;
+    fullPrompt += `\n\nSpecific focus areas: ${criteria.join(", ")}`;
   }
-  
-  // Determine if target is a file path or inline content
-  let files = [];
-  let inlineContent = "";
-  
+
+  if (context) {
+    fullPrompt += `\n\nAdditional context: ${context}`;
+  }
+
+  // Determine if target is a file path or inline content using fs.access()
+  let isFile = false;
   if (typeof target === "string") {
-    // Check if it looks like a file path
-    if (target.includes("/") || target.endsWith(".js") || target.endsWith(".py") || 
-        target.endsWith(".md") || target.endsWith(".qmd") || target.endsWith(".ts") ||
-        target.endsWith(".jsx") || target.endsWith(".tsx")) {
-      files = [target];
-    } else {
-      // Treat as inline content
-      inlineContent = target;
-      prompt += `\n\nContent to review:\n${target}`;
+    try {
+      await access(target);
+      isFile = true;
+    } catch (e) {
+      // Not a file or not accessible, treat as inline content
+      isFile = false;
     }
   }
-  
-  // Build and execute command
-  const command = buildGeminiCommand(prompt, files, context);
-  
+
+  if (isFile) {
+    // Add file reference with @ syntax
+    fullPrompt += `\n\n@${target}`;
+  } else {
+    // Treat as inline content
+    fullPrompt += `\n\nContent to review:\n${target}`;
+  }
+
   try {
-    const { stdout, stderr } = await execAsync(command, { 
-      maxBuffer: 1024 * 1024 * 10, // 10MB buffer
-      timeout: 60000 // 60 second timeout
+    const { stdout, stderr } = await execFileAsync("gemini", ["-p", fullPrompt], {
+      maxBuffer: GEMINI_EXEC_MAX_BUFFER,
+      timeout: GEMINI_EXEC_TIMEOUT
     });
-    
+
     return {
       success: true,
       review: stdout,
-      command: command.substring(0, 100) + "..." // Truncate for display
+      command: `gemini -p "..." @${isFile ? target : '(inline content)'}` // Simplified display
     };
   } catch (error) {
     return {
