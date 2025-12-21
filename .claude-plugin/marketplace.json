@@ -13,8 +13,8 @@
     {
       "name": "gemini-review",
       "source": "./gemini-review",
-      "description": "Get a second opinion from Gemini on code changes, plans, documentation, and other work products",
-      "version": "1.0.1",
+      "description": "Get a second opinion from Google's Gemini on code changes, plans, documentation, architecture, and other work products. Use when you need independent validation, cross-checking critical decisions, catching blind spots, or getting multiple AI perspectives on important work.",
+      "version": "1.1.0",
       "author": {
         "name": "Brandon Greenwell",
         "email": "[email protected]"
@@ -22,7 +22,22 @@
       "homepage": "https://github.com/bgreenwell/claude-plugins",
       "repository": "https://github.com/bgreenwell/claude-plugins",
       "license": "MIT",
-      "keywords": ["gemini", "review", "validation", "second-opinion", "llm"],
+      "keywords": ["gemini", "review", "validation", "second-opinion", "llm", "code-review", "architecture", "security"],
+      "category": "productivity"
+    },
+    {
+      "name": "plagiarism-review",
+      "source": "./plagiarism-review",
+      "description": "Multi-layered plagiarism detection for academic writing using LLM analysis, local algorithms, web search, and optional APIs. Check originality, detect citation issues, analyze writing style consistency, and verify academic integrity before submission.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Brandon Greenwell",
+        "email": "[email protected]"
+      },
+      "homepage": "https://github.com/bgreenwell/claude-plugins",
+      "repository": "https://github.com/bgreenwell/claude-plugins",
+      "license": "MIT",
+      "keywords": ["plagiarism", "academic", "writing", "citation", "originality", "integrity", "similarity", "detection"],
       "category": "productivity"
     }
   ]

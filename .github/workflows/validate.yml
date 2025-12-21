@@ -1,0 +1,89 @@
+name: Validate Plugins
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Plugin Structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Clone and build claude-forge
+        run: |
+          cd /tmp
+          git clone https://github.com/bgreenwell/claude-forge.git
+          cd claude-forge
+          cargo build --release
+          echo "/tmp/claude-forge/target/release" >> $GITHUB_PATH
+
+      - name: Validate gemini-review plugin
+        run: |
+          cforge validate --path gemini-review
+
+      - name: Validate plagiarism-review plugin
+        run: |
+          cforge validate --path plagiarism-review
+
+      - name: Check for plugin metadata consistency
+        run: |
+          echo "Checking version consistency..."
+
+          # Extract versions from plugin.json files
+          GEMINI_VERSION=$(jq -r '.version' gemini-review/.claude-plugin/plugin.json)
+          PLAGIARISM_VERSION=$(jq -r '.version' plagiarism-review/.claude-plugin/plugin.json)
+
+          # Extract versions from marketplace.json
+          MARKETPLACE_GEMINI=$(jq -r '.plugins[] | select(.name=="gemini-review") | .version' .claude-plugin/marketplace.json)
+          MARKETPLACE_PLAGIARISM=$(jq -r '.plugins[] | select(.name=="plagiarism-review") | .version' .claude-plugin/marketplace.json)
+
+          echo "gemini-review: plugin.json=$GEMINI_VERSION, marketplace.json=$MARKETPLACE_GEMINI"
+          echo "plagiarism-review: plugin.json=$PLAGIARISM_VERSION, marketplace.json=$MARKETPLACE_PLAGIARISM"
+
+          # Check if versions match
+          if [ "$GEMINI_VERSION" != "$MARKETPLACE_GEMINI" ]; then
+            echo "::error::Version mismatch for gemini-review: $GEMINI_VERSION (plugin.json) vs $MARKETPLACE_GEMINI (marketplace.json)"
+            exit 1
+          fi
+
+          if [ "$PLAGIARISM_VERSION" != "$MARKETPLACE_PLAGIARISM" ]; then
+            echo "::error::Version mismatch for plagiarism-review: $PLAGIARISM_VERSION (plugin.json) vs $MARKETPLACE_PLAGIARISM (marketplace.json)"
+            exit 1
+          fi
+
+          echo "All version numbers are consistent"
+
+      - name: Validation summary
+        if: success()
+        run: |
+          echo "All plugins validated successfully"
+          echo "Version numbers are consistent"
+          echo ""
+          echo "Validated plugins:"
+          echo "  - gemini-review"
+          echo "  - plagiarism-review"

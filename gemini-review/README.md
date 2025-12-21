@@ -1,35 +1,49 @@
 # Gemini Review Plugin
 
-Get a second opinion from Gemini on Claude Code's work. This plugin integrates Google's Gemini LLM to provide independent validation and feedback on code changes, architectural plans, documentation, and other work products.
+Get independent second opinions from Google's Gemini AI on your code, plans, documentation, and architecture decisions.
+
+## Overview
+
+The Gemini Review plugin enables Claude Code to leverage Google's Gemini AI for independent validation and cross-checking of critical work. Use it when you need multiple AI perspectives, want to catch blind spots, or require validation before making important decisions.
 
 ## Why Use This?
 
 - **Independent Validation**: Get a second LLM perspective on important decisions
 - **Catch Blind Spots**: Different models have different strengths and may notice different issues
 - **Cross-Validation**: Verify critical code changes with multiple AI opinions
-- **Complement Your Workflow**: Already use Gemini? Now it's integrated into Claude Code
+- **Multiple Perspectives**: Combine Claude and Gemini's insights for comprehensive reviews
+- **Proactive Integration**: Claude knows when to autonomously consult Gemini
 
 ## Prerequisites
 
-**Required before installation:**
+### 1. Install gemini-cli
 
-1. **gemini-cli** - The Gemini command-line interface
-   ```bash
-   pip install gemini-cli  # Or your appropriate install method
-   ```
+```bash
+pip install gemini-cli
+```
 
-2. **Authenticate with Gemini** - Choose one method:
-   
-   **Option A: Google Account (recommended)**
-   ```bash
-   gemini auth login
-   ```
-   
-   **Option B: API Key**
-   ```bash
-   # Get a key from https://aistudio.google.com/apikey
-   gemini config set api_key YOUR_API_KEY
-   ```
+### 2. Authenticate with Gemini
+
+Choose one method:
+
+**Option A: Google OAuth (recommended)**
+```bash
+gemini auth login
+```
+
+**Option B: API Key**
+```bash
+# Get a key from https://aistudio.google.com/apikey
+gemini config set api_key YOUR_API_KEY
+```
+
+### 3. Verify Setup
+
+```bash
+gemini -p "test"
+```
+
+If you see a response from Gemini, you're ready!
 
 **Setup time:** ~5 minutes
 
@@ -37,161 +51,281 @@ Get a second opinion from Gemini on Claude Code's work. This plugin integrates G
 
 ### Add the Marketplace
 
-First, add this plugin marketplace:
-
 ```bash
-/plugin marketplace add bgreenwell/claude-plugins
+/plugin marketplace add https://github.com/bgreenwell/claude-plugins
 ```
 
 ### Install the Plugin
 
-Then install gemini-review:
-
 ```bash
-/plugin install gemini-review@bgreenwell
+/plugin install gemini-review@bgreenwell-plugins
 ```
 
-### Verify Setup
+### Verify Installation
 
-Check that everything is configured:
-
-```bash
-# In Claude Code, ask Claude to verify:
-"Can you check if gemini-cli is set up correctly?"
+Ask Claude:
 ```
-
-Claude will use the `gemini_check_setup` tool to validate your installation.
+"Do you have the gemini-review skill available?"
+```
 
 ## Usage
 
-The plugin provides a `gemini_review` tool that Claude Code can use automatically. Just ask Claude naturally:
+Simply ask Claude naturally for reviews or second opinions. Claude will autonomously decide when to consult Gemini.
 
 ### Example Prompts
 
 **Review code changes:**
 ```
-"Have Gemini review my changes to auth.js for security issues"
-"Ask Gemini to check this function for performance problems"
+"Review my changes to auth.js for security issues"
+"Get a second opinion on this refactoring"
 ```
 
-**Review plans:**
+**Review architectural decisions:**
 ```
-"Get Gemini's opinion on this refactoring plan"
-"Have Gemini validate my architecture approach"
+"Should I use microservices or monolith for this project?"
+"Get Gemini's perspective on this API design"
 ```
 
 **Review documentation:**
 ```
-"Ask Gemini to review this README for clarity"
-"Have Gemini check the docs in @installation.qmd for accuracy"
+"Review this README for clarity and completeness"
+"Get feedback on my architecture documentation"
 ```
 
 **Review test coverage:**
 ```
-"Get Gemini's assessment of whether these tests are comprehensive"
-"Have Gemini review my test suite for gaps"
+"Are my tests comprehensive enough?"
+"Get a second opinion on my test suite"
 ```
 
-**Custom reviews:**
+**Security audits:**
 ```
-"Ask Gemini to review this code focusing on readability and maintainability"
-"Have Gemini evaluate this design for scalability"
+"Perform a security review of my authentication system"
+"Check this code for vulnerabilities"
 ```
-
-## Review Types
-
-The plugin supports these review types, each with specific focus areas:
-
-- **`code_changes`** - Correctness, performance, maintainability, security
-- **`plan`** - Feasibility, risks, completeness, alternatives
-- **`documentation`** - Accuracy, clarity, grammar, tone
-- **`architecture`** - Scalability, maintainability, trade-offs
-- **`test_coverage`** - Completeness, edge cases, quality
-- **`custom`** - Specify your own criteria
 
 ## How It Works
 
-1. You ask Claude Code to get a Gemini review
-2. Claude Code calls the `gemini_review` tool with appropriate parameters
-3. The plugin executes `gemini-cli` with optimized prompts
-4. Gemini's feedback is returned to Claude Code
-5. Claude Code can act on the feedback or discuss it with you
+When you ask for a review or second opinion:
 
-## Best For
+1. **Claude analyzes** your code/docs and forms its own opinion
+2. **Claude constructs** a focused prompt for Gemini
+3. **Claude calls gemini-cli** with appropriate file references
+4. **Gemini reviews** the content independently
+5. **Claude synthesizes** both perspectives
+6. **You receive** comprehensive findings with actionable recommendations
 
-- Developers who already use Gemini in their workflow
-- Teams wanting standardized code review processes
-- Critical decisions that benefit from multiple perspectives
-- Learning and improving code quality
+## Review Types Supported
 
-## Advanced Usage
+- **Code Changes**: Logic, performance, security, edge cases, maintainability
+- **Architecture**: Scalability, maintainability, technology choices, trade-offs
+- **Documentation**: Accuracy, clarity, completeness, grammar, tone
+- **Test Coverage**: Scenarios, edge cases, quality, missing cases
+- **Security**: Vulnerabilities, best practices, OWASP compliance
+- **Plans**: Feasibility, risks, alternatives, completeness
 
-### Using File References
+## Features
 
-The plugin works best with file paths (uses gemini-cli's `@` syntax):
+### Structured Review Templates
 
+Claude has access to proven review templates for:
+- Code changes review
+- Plan validation
+- Documentation quality checks
+- Architecture assessment
+- Test coverage analysis
+- Custom criteria reviews
+
+### Model Selection
+
+Claude automatically chooses the right Gemini model:
+- **gemini-2.5-flash**: Fast, for quick reviews
+- **gemini-2.5-pro**: Thorough, for critical decisions
+
+You can also request specific models:
 ```
-"Have Gemini review the authentication logic in @src/auth.js"
+"Use Gemini Pro for a thorough security audit"
 ```
 
-Note: When Claude Code calls gemini-cli, it includes the @ references inside the prompt string, which is how gemini-cli expects them.
+### Multi-File Support
 
-### Specifying Criteria
-
-You can focus the review on specific aspects:
-
+Review multiple related files together:
 ```
-"Ask Gemini to review my API design, focusing on security and performance"
+"Review these auth files for consistency: @src/auth.js @src/session.js @tests/auth.test.js"
 ```
+
+### Context-Aware Reviews
+
+Claude automatically provides relevant context to Gemini about:
+- What the code is trying to achieve
+- Your specific requirements
+- Constraints and decisions
+- What aspects to focus on
+
+## Best Practices
+
+### When to Get Gemini Reviews
+
+✅ Before merging critical code changes
+✅ Important architectural decisions
+✅ Complex refactoring plans
+✅ Security-sensitive code
+✅ Test coverage validation
+✅ When you need a fresh perspective
+
+❌ Trivial questions or simple tasks
+❌ Repeatedly for the same content
+❌ As a replacement for your own analysis
 
 ### Providing Context
 
-Give Gemini context for better reviews:
+Give Claude context for better reviews:
+```
+"Review this auth refactoring. Context: We're optimizing for mobile performance and need to support offline mode."
+```
+
+### Focusing Reviews
+
+Specify what aspects to focus on:
+```
+"Review this API design, focusing specifically on security vulnerabilities and rate limiting"
+```
+
+## Example Workflows
+
+### Pre-Commit Review
 
 ```
-"Have Gemini review this refactoring. Context: We're optimizing for mobile performance"
+You: "Review these authentication changes before I commit"
+
+Claude will:
+1. Read and analyze the auth files
+2. Identify potential issues
+3. Get Gemini's independent review
+4. Present comprehensive findings
+5. Recommend specific improvements
 ```
+
+### Architecture Decision
+
+```
+You: "Should I use REST or GraphQL for this API?"
+
+Claude will:
+1. Consider your requirements
+2. Analyze trade-offs
+3. Get Gemini's perspective
+4. Present both opinions
+5. Make a recommendation
+```
+
+### Security Audit
+
+```
+You: "Perform a security audit of my authentication system"
+
+Claude will:
+1. Review the auth code
+2. Identify security concerns
+3. Get Gemini Pro's security review
+4. Combine findings
+5. Prioritize vulnerabilities
+```
+
+## What This Plugin Provides
+
+- **SKILL.md**: Comprehensive guide for Claude on using gemini-cli
+- **Review Templates**: Structured prompts for different review types
+- **Best Practices**: When and how to use Gemini reviews
+- **Troubleshooting**: Common issues and solutions
+- **Examples**: Real-world usage patterns
 
 ## Troubleshooting
 
-**Tool not available:**
-- Run `/plugin list` to verify the plugin is installed
-- Check that Node.js 18+ is installed
-- Try reinstalling: `/plugin uninstall gemini-review` then reinstall
+### "gemini-cli not found"
 
-**"gemini-cli not found" error:**
-- Install gemini-cli: `pip install gemini-cli`
-- Verify it's in your PATH: `which gemini`
+```bash
+pip install gemini-cli
+which gemini  # Verify installation
+```
 
-**Authentication errors:**
-- Authenticate via Google: `gemini auth login`
-- Or use API key from https://aistudio.google.com/apikey
-- Configure API key: `gemini config set api_key YOUR_KEY`
-- Test manually: `gemini -p "test"`
+### Authentication errors
 
-**Reviews timing out:**
-- Large files may take longer
-- Try reviewing specific sections instead of entire files
+```bash
+# Re-authenticate via Google
+gemini auth login
+
+# Or set new API key
+gemini config set api_key YOUR_NEW_KEY
+
+# Test
+gemini -p "test"
+```
+
+### "API key invalid"
+
+1. Generate new key at https://aistudio.google.com/apikey
+2. Set it: `gemini config set api_key YOUR_NEW_KEY`
+3. Verify: `gemini config list`
+
+### Timeout errors
+
+- Review smaller sections instead of entire large files
+- Use gemini-2.5-flash for faster processing
 - Check your internet connection
 
-## What This Plugin Does NOT Do
+### File not found with @ references
 
-- ❌ Store your API key (you manage this via gemini-cli)
-- ❌ Send data anywhere except Gemini's API
-- ❌ Work without gemini-cli installed
-- ❌ Replace Claude Code (it augments it!)
+- Use relative paths from project root
+- Verify file exists: `ls path/to/file`
+- Ensure proper file permissions
 
 ## Privacy & Security
 
-- Your code is sent to Google's Gemini API for review
-- API key is managed by gemini-cli, not this plugin
-- Review Google's data policies: https://ai.google.dev/gemini-api/terms
-- Use responsibly with proprietary/sensitive code
+**Important considerations:**
+
+- Code is sent to Google's Gemini API for review
+- Don't use for proprietary/sensitive code without authorization
+- Review your organization's AI usage policies
+- gemini-cli manages API credentials (not this plugin)
+- See Google's data policies: https://ai.google.dev/gemini-api/terms
+
+## Advanced Usage
+
+### Custom Review Criteria
+
+```
+"Review this code based on these criteria:
+1. Performance for large datasets
+2. Memory efficiency
+3. Thread safety"
+```
+
+### Inline Content Reviews
+
+Review plans/ideas without files:
+```
+"Review this approach: I'm planning to cache user sessions in Redis with 24hr expiration. What are the risks?"
+```
+
+### Comparative Reviews
+
+```
+"Compare these two implementations and recommend which is better"
+```
+
+## What This Plugin Does NOT Do
+
+❌ Store your API key (managed by gemini-cli)
+❌ Send data anywhere except Gemini's API
+❌ Work without gemini-cli installed
+❌ Replace Claude's analysis (augments it)
+❌ Make decisions for you (provides input)
 
 ## Contributing
 
-Found a bug or have a suggestion? Open an issue or PR:
-https://github.com/bgreenwell/claude-plugins
+Found a bug or have a suggestion?
+https://github.com/bgreenwell/claude-plugins/issues
 
 ## License
 
@@ -203,6 +337,20 @@ Brandon Greenwell
 - GitHub: [@bgreenwell](https://github.com/bgreenwell)
 - Email: [email protected]
 
+## Changelog
+
+### v1.1.0 (Current)
+- Added comprehensive SKILL.md with review templates
+- Enhanced with structured prompts for different review types
+- Added security audit templates
+- Improved troubleshooting guide
+- Added model selection guidance
+- Expanded examples and best practices
+
+### v1.0.1
+- Initial MCP server-based implementation
+- Basic gemini_review tool
+
 ---
 
-**Enjoy having two AI perspectives on your code!** 🚀
+**Enjoy having two AI perspectives on your code!**

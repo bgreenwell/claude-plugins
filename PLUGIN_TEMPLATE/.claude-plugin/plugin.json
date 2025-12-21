@@ -1,0 +1,14 @@
+{
+  "name": "plugin-name",
+  "version": "0.1.0",
+  "description": "Brief description of what this plugin does",
+  "author": {
+    "name": "Your Name",
+    "email": "[email protected]"
+  },
+  "homepage": "https://github.com/bgreenwell/claude-plugins/tree/main/plugin-name",
+  "repository": "https://github.com/bgreenwell/claude-plugins",
+  "license": "MIT",
+  "keywords": ["keyword1", "keyword2", "keyword3"],
+  "skills": ["./skills/example-skill.md"]
+}
