@@ -34,7 +34,7 @@ claude-plugins/
 The marketplace catalog. This file:
 - Must use valid JSON syntax
 - Lists all plugins in the `plugins` array
-- Must validate with `claude plugin validate` before commits
+- Must validate with `cforge validate` before commits
 - Uses kebab-case for names
 
 ### Per-Plugin Files
@@ -87,14 +87,14 @@ cforge new-plugin --name plugin-name --description "Plugin description"
 # Add local marketplace
 /plugin marketplace add ./
 
-# Install plugin
-/plugin install plugin-name@bgreenwell-plugins
+# Install plugin (example with gemini-review)
+/plugin install gemini-review@bgreenwell-plugins
 
 # Test functionality
-# (verify tools/commands/agents work)
+# (verify skills/commands/agents work as expected)
 
 # Clean up
-/plugin uninstall plugin-name
+/plugin uninstall gemini-review
 /plugin marketplace remove bgreenwell-plugins
 ```
 
@@ -153,6 +153,12 @@ Before committing changes:
 - **Distribution:** GitHub serves marketplace via raw URLs
 - **Development Tools:** claude-forge CLI for scaffolding and validation
 - **External Dependencies:** Plugins may require external tools (e.g., gemini-cli)
+
+## Development Resources
+
+- **CONTRIBUTING.md** - Comprehensive guidelines for contributing plugins to this marketplace
+- **PLUGIN_TEMPLATE/** - Ready-to-use template for creating new plugins with standard structure
+- **GitHub Actions** - Automated validation workflow (.github/workflows/validate.yml) runs on every push/PR
 
 ## Key References
 
