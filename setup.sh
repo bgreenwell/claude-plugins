@@ -17,13 +17,6 @@ fi
 echo "✅ Node.js version: $(node -v)"
 echo ""
 
-# Install dependencies
-echo "Installing Node.js dependencies..."
-cd gemini-review
-npm install
-echo "✅ Dependencies installed"
-echo ""
-
 # Check for gemini-cli
 echo "Checking for gemini-cli..."
 if ! command -v gemini &> /dev/null; then
@@ -39,19 +32,7 @@ if ! command -v gemini &> /dev/null; then
   echo "Get API key from: https://aistudio.google.com/apikey"
 else
   echo "✅ gemini-cli is installed"
-  
-  # Test gemini-cli
-  echo ""
-  echo "Testing gemini-cli configuration..."
-  if npm run test 2>&1 | grep -q "All tests passed"; then
-    echo "✅ gemini-cli is configured correctly!"
-  else
-    echo "⚠️  gemini-cli may not be configured correctly"
-    echo "Run 'npm test' in the gemini-review directory for details"
-  fi
 fi
-
-cd ..
 
 echo ""
 echo "=" 

@@ -1,0 +1,14 @@
+{
+  "name": "plagiarism-review",
+  "version": "1.0.0",
+  "description": "Multi-layered plagiarism detection for academic writing using LLM analysis, local algorithms, web search, and optional APIs. Check originality, detect citation issues, analyze writing style consistency, and verify academic integrity before submission.",
+  "author": {
+    "name": "Brandon Greenwell",
+    "email": "[email protected]"
+  },
+  "homepage": "https://github.com/bgreenwell/claude-plugins/tree/main/plagiarism-review",
+  "repository": "https://github.com/bgreenwell/claude-plugins",
+  "license": "MIT",
+  "keywords": ["plagiarism", "academic", "writing", "citation", "originality", "integrity", "similarity", "detection"],
+  "skills": ["./skills/plagiarism-review.md"]
+}
