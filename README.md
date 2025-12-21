@@ -8,7 +8,7 @@ Personal collection of Claude Code plugins for productivity and development work
 
 Get a second opinion from Google's Gemini on Claude Code's work. Integrates gemini-cli for independent validation of code changes, plans, documentation, and architecture.
 
-**Status:** ✅ Stable v1.0.0
+**Status:** ✅ Stable v1.1.0
 
 **Use cases:**
 - Cross-validate critical code changes
@@ -19,6 +19,22 @@ Get a second opinion from Google's Gemini on Claude Code's work. Integrates gemi
 **Prerequisites:** Requires `gemini-cli` and Gemini authentication (Google account or API key)
 
 [→ View Plugin Details](./gemini-review/README.md)
+
+### 📝 [Plagiarism Review](./plagiarism-review)
+
+Multi-layered plagiarism detection for academic writing using LLM analysis, local algorithms, and web search.
+
+**Status:** ✅ Stable v1.0.0
+
+**Use cases:**
+- Check academic writing for originality
+- Detect citation issues
+- Analyze writing style consistency
+- Verify academic integrity before submission
+
+**Prerequisites:** Requires `gemini-cli` for LLM analysis, optional Python packages for enhanced features
+
+[→ View Plugin Details](./plagiarism-review/README.md)
 
 ---
 
@@ -69,15 +85,30 @@ Want to create your own plugins? Check out the [official documentation](https://
 ```
 claude-plugins/
 ├── .claude-plugin/
-│   └── marketplace.json      # Marketplace catalog
-├── gemini-review/             # Plugin 1
+│   └── marketplace.json          # Marketplace catalog
+├── gemini-review/                 # Plugin: Second opinions from Gemini
 │   ├── .claude-plugin/
 │   │   └── plugin.json
-│   ├── .mcp.json
-│   ├── server.js
-│   ├── package.json
+│   ├── skills/
+│   │   └── gemini-review.md
+│   ├── commands/
+│   ├── agents/
+│   ├── hooks/
 │   └── README.md
-└── [future-plugins]/          # More plugins here
+├── plagiarism-review/             # Plugin: Plagiarism detection
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   ├── skills/
+│   │   └── plagiarism-review.md
+│   ├── commands/
+│   ├── agents/
+│   ├── hooks/
+│   └── README.md
+├── CLAUDE.md                      # Context file for Claude Code
+├── CHANGELOG.md                   # Version history
+├── LICENSE
+├── README.md
+└── setup.sh                       # Development setup script
 ```
 
 ## About
