@@ -5,6 +5,55 @@ All notable changes to the claude-plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-21 (gemini-review)
+
+### Added
+- **NEW:** `/gemini-review` slash command for quick reviews with smart defaults
+  - Reviews git staged files by default (no args needed)
+  - Supports file patterns, model selection (`--model flash|pro`), and focus areas (`--focus security`)
+  - Shows structured output with severity indicators (✓ ⚠️ ❌)
+  - Displays token usage for cost awareness
+- **NEW:** `/gemini-batch-review` command for batch processing with progress tracking
+  - Reviews 5-20 files optimally with real-time progress
+  - Uses stream-JSON for progress visibility ("Processing... [5/10] 50%")
+  - Aggregates results by file with priority recommendations
+  - Shows token usage and cost estimates
+- **NEW:** JSON output support (`--output-format json`)
+  - Structured, parseable output for better result processing
+  - Token usage extraction and tracking
+  - Integration with automation workflows
+- **NEW:** Stream-JSON support (`--output-format stream-json`)
+  - Real-time progress updates for long-running reviews
+  - Event-based monitoring (init, message, tool_use, result)
+  - Optimal for batch operations
+- **NEW:** Directory context support (`--include-directories`)
+  - Provide broader codebase context for architectural reviews
+  - System-wide understanding for refactoring plans
+  - Cross-cutting concern analysis
+
+### Improved
+- Enhanced skill file (+252 lines) with comprehensive JSON/stream-JSON guidance
+- Better error handling with retry logic and graceful fallbacks
+- Improved model selection guidance (when to use Flash vs Pro)
+- Expanded examples demonstrating new capabilities
+- Better structured output formatting
+- Enhanced troubleshooting section with JSON parsing errors
+
+### Documentation
+- Added "What's New in v1.2" section to README
+- Comprehensive slash command reference with examples
+- JSON output usage patterns and best practices
+- Stream-JSON progress tracking examples
+- Command-specific documentation (120+ lines per command)
+- Updated all examples to show new features
+
+### Technical
+- First plugin in marketplace to implement slash commands
+- Pioneering command-based plugin patterns
+- Template for future command development
+- No breaking changes - fully backward compatible
+- Natural language interaction still works exactly as before
+
 ## [1.1.0] - 2025-12-20 (gemini-review)
 
 ### Changed
@@ -82,6 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Timeout protection (60s for reviews)
 - Shell escaping for prompt injection protection
 
+[1.2.0]: https://github.com/bgreenwell/claude-plugins/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/bgreenwell/claude-plugins/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/bgreenwell/claude-plugins/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/bgreenwell/claude-plugins/releases/tag/v1.0.0

@@ -88,6 +88,146 @@ gemini -m gemini-2.5-flash -p "Quick review: @src/utils.js"
 gemini -m gemini-2.5-pro -p "Comprehensive security review: @src/auth/*"
 ```
 
+## Advanced Features
+
+### JSON Output for Structured Reviews
+
+Use `--output-format json` to get structured, parseable output that's easier to process programmatically:
+
+```bash
+gemini -p "Review this code: @src/auth.js" --output-format json
+```
+
+**JSON Response Structure:**
+```json
+{
+  "response": "The review findings text...",
+  "stats": {
+    "models": {
+      "gemini-2.5-flash": {
+        "tokens": {
+          "input": 5000,
+          "output": 1200,
+          "total": 6200
+        }
+      }
+    }
+  }
+}
+```
+
+**How Claude Should Use JSON Output:**
+
+1. **Execute with JSON format:**
+```bash
+result=$(gemini -p "Review for security: @src/auth.js" --output-format json)
+```
+
+2. **Parse the response:**
+```bash
+# Extract review findings
+response=$(echo "$result" | jq -r '.response')
+
+# Extract token usage
+tokens=$(echo "$result" | jq -r '.stats.models | to_entries | map(.value.tokens.total) | add // 0')
+```
+
+3. **Present to user:**
+```
+Review findings: [formatted response]
+Tokens used: [total tokens]
+```
+
+**Benefits of JSON Output:**
+- Structured data for better parsing
+- Token usage tracking for cost awareness
+- Tool execution metrics
+- Programmatic processing
+
+**When to Use JSON:**
+- Slash commands (automated workflows)
+- Need to extract specific data (token counts, findings)
+- Multiple file reviews requiring aggregation
+- Integration with other tools
+
+**Fallback:** If `jq` is not available, use text output (`--output-format text`) instead.
+
+### Stream-JSON for Real-Time Progress
+
+For long-running reviews (multiple files, large codebases), use `--output-format stream-json` to get real-time progress updates:
+
+```bash
+gemini -p "Review all files: @src/**/*.js" --output-format stream-json
+```
+
+**Stream-JSON Event Types:**
+1. `init` - Review session started
+2. `message` - User/assistant message exchange
+3. `tool_use` - Tool invocation
+4. `tool_result` - Tool execution result
+5. `error` - Non-fatal error
+6. `result` - Final aggregated results
+
+**How Claude Should Use Stream-JSON:**
+
+For batch reviews or long operations, monitor the event stream:
+
+```bash
+gemini -p "Review multiple files..." --output-format stream-json | \
+  while IFS= read -r line; do
+    event_type=$(echo "$line" | jq -r '.type // empty')
+    case "$event_type" in
+      "init")
+        echo "Starting review..."
+        ;;
+      "message")
+        role=$(echo "$line" | jq -r '.message.role // empty')
+        if [[ "$role" == "assistant" ]]; then
+          echo "Processing..."
+        fi
+        ;;
+      "result")
+        echo "Complete!"
+        final_result="$line"
+        ;;
+    esac
+  done
+```
+
+**When to Use Stream-JSON:**
+- Batch reviews of 5+ files
+- Large codebase analysis
+- User wants progress visibility
+- Long-running operations
+
+**Display Progress:**
+- Show file count: "Processing file 3 of 10..."
+- Show current file: "Reviewing src/auth/session.js..."
+- Show completion: "Review complete! Found 5 issues."
+
+### Directory Context for Architectural Reviews
+
+Use `--include-directories` to provide broader context for architectural and design reviews:
+
+```bash
+gemini -p "Review this architecture: @docs/architecture.md" \
+  --include-directories src,docs
+```
+
+**When to Use:**
+- Architecture reviews (need full codebase context)
+- API design validation (see all endpoints)
+- Refactoring plans (understand system structure)
+- Cross-cutting concern analysis
+
+**Example:**
+```bash
+gemini -p "Is this auth approach consistent with the rest of the codebase?" \
+  --include-directories src/auth,src/api,src/middleware
+```
+
+**Note:** Be mindful of context size - don't include build artifacts, node_modules, etc.
+
 ## Review Templates
 
 Use these structured prompts for different review types.
@@ -282,6 +422,90 @@ gemini -m gemini-2.5-flash -p "Quick review of this function: @src/utils.js"
 gemini -m gemini-2.5-pro -p "Comprehensive security review: @src/auth/*"
 ```
 
+## Error Handling & Retry Logic
+
+### Graceful Error Recovery
+
+When calling gemini-cli, Claude should handle errors gracefully and provide clear guidance:
+
+**1. Check if gemini-cli is installed:**
+```bash
+if ! command -v gemini &> /dev/null; then
+    echo "Error: gemini-cli not found"
+    echo "Install: pip install gemini-cli"
+    echo "Setup guide: https://github.com/bgreenwell/claude-plugins/tree/main/gemini-review"
+    exit 1
+fi
+```
+
+**2. Verify authentication:**
+```bash
+if ! gemini -p "test" &> /dev/null 2>&1; then
+    echo "Error: gemini-cli not authenticated"
+    echo "Run: gemini auth login"
+    echo "Or set API key: gemini config set api_key YOUR_KEY"
+    exit 1
+fi
+```
+
+**3. Handle rate limiting:**
+If you encounter rate limit errors, suggest:
+- Wait a few seconds and retry
+- Use gemini-2.5-flash (fewer tokens, less likely to hit limits)
+- Break large reviews into smaller chunks
+
+**4. Timeout handling:**
+For large files or slow connections:
+- First attempt: Use specified model (Pro or Flash)
+- If timeout: Retry with gemini-2.5-flash (faster)
+- If still fails: Suggest reviewing smaller sections
+
+**5. JSON parsing errors:**
+```bash
+result=$(gemini -p "..." --output-format json 2>&1)
+
+# Try to parse JSON
+if echo "$result" | jq . > /dev/null 2>&1; then
+    # JSON is valid, proceed
+    response=$(echo "$result" | jq -r '.response')
+else
+    # JSON parsing failed, fall back to text mode
+    echo "Note: JSON parsing failed, using text output"
+    result=$(gemini -p "..." --output-format text)
+fi
+```
+
+**6. Network errors:**
+If network errors occur:
+- Suggest checking internet connection
+- Retry once after 2-3 second delay
+- If persists, report error clearly to user
+
+### Error Message Guidelines
+
+**For Claude:**
+- Always provide actionable next steps
+- Don't just report errors - suggest solutions
+- Include relevant documentation links
+- Show exact commands to fix the problem
+
+**Example Good Error Message:**
+```
+I encountered an authentication error with gemini-cli.
+
+To fix this:
+1. Run: gemini auth login
+2. Or set an API key from https://aistudio.google.com/apikey
+3. Then retry your review request
+
+Would you like me to try again once you've authenticated?
+```
+
+**Example Bad Error Message:**
+```
+Error: 401 Unauthorized
+```
+
 ## Troubleshooting
 
 ### "gemini-cli not found"
@@ -330,6 +554,7 @@ gemini -p "test"
 - Use gemini-2.5-flash for faster processing
 - Break large reviews into smaller chunks
 - Check internet connection
+- Retry with smaller context (fewer files)
 
 ### File not found with @ references
 
@@ -340,6 +565,25 @@ gemini -p "test"
 - Verify file exists: `ls path/to/file`
 - Ensure @ reference is inside the quoted prompt
 - Use absolute paths if relative paths don't work
+
+### JSON parsing errors
+
+**Problem:** `jq` command fails or JSON output malformed
+
+**Solutions:**
+- Install jq: `brew install jq` (macOS) or `apt-get install jq` (Linux)
+- Fall back to text output: `--output-format text`
+- Check gemini-cli version is up to date: `pip install --upgrade gemini-cli`
+
+### Rate limiting
+
+**Problem:** "Too many requests" or rate limit errors
+
+**Solutions:**
+- Wait 10-30 seconds before retrying
+- Use gemini-2.5-flash (lower token usage)
+- Break large batch reviews into smaller groups
+- Check your API quota/limits
 
 ## Examples
 
@@ -411,6 +655,84 @@ gemini -m gemini-2.5-pro -p "Perform a security audit of this authentication sys
 Files: @src/auth/* @src/middleware/security.js"
 ```
 
+### Example 6: Using JSON Output for Structured Results
+
+```bash
+# Get structured review output
+result=$(gemini -p "Review for security: @src/auth/login.js" --output-format json)
+
+# Parse and display
+response=$(echo "$result" | jq -r '.response')
+tokens=$(echo "$result" | jq -r '.stats.models | to_entries | map(.value.tokens.total) | add // 0')
+
+echo "Security Review Findings:"
+echo "$response"
+echo ""
+echo "Tokens used: $tokens"
+```
+
+**When Claude uses this:**
+- Slash commands (automated workflows)
+- Need to show token usage to user
+- Aggregating results from multiple reviews
+- Better structured output formatting
+
+### Example 7: Batch Review with Progress Tracking
+
+```bash
+# Review multiple directories with real-time progress
+gemini -p "Review all these files for code quality and best practices:
+@src/api/*.js
+@src/services/*.js
+@src/utils/*.js" \
+--output-format stream-json | \
+while IFS= read -r line; do
+  event_type=$(echo "$line" | jq -r '.type // empty')
+  case "$event_type" in
+    "init")
+      echo "Starting batch review..."
+      ;;
+    "message")
+      # Show progress
+      echo "Processing..."
+      ;;
+    "result")
+      # Final results
+      final=$(echo "$line" | jq -r '.response')
+      echo "Review complete!"
+      echo "$final"
+      ;;
+  esac
+done
+```
+
+**When Claude uses this:**
+- User asks to review multiple files/directories
+- Long-running operations (5+ files)
+- User wants to see progress updates
+- Batch processing workflows
+
+### Example 8: Architecture Review with Directory Context
+
+```bash
+# Review architecture with full codebase context
+gemini -p "Review this microservices architecture for:
+- Service boundaries
+- Communication patterns
+- Data consistency
+- Scalability concerns
+
+Architecture doc: @docs/architecture/microservices.md" \
+--include-directories src/services,src/api,docs/architecture \
+--model gemini-2.5-pro
+```
+
+**When Claude uses this:**
+- Architecture reviews
+- Need to understand full system design
+- Refactoring plans that affect multiple components
+- Cross-cutting concern analysis
+
 ## Integration Tips for Claude
 
 ### When Claude Should Use This Skill
@@ -425,11 +747,70 @@ Claude should autonomously invoke Gemini when:
 
 ### How Claude Should Use This Skill
 
+**For Natural Language Requests:**
+
 1. **Read the relevant files first** to understand context
 2. **Construct a specific prompt** based on the review type
-3. **Use Bash tool** to call gemini-cli with appropriate @ file references
-4. **Parse Gemini's response** and synthesize it with Claude's own analysis
+3. **Use JSON output** for better structured results: `--output-format json`
+4. **Parse Gemini's response** and extract key findings
 5. **Present both perspectives** to the user, highlighting agreements and differences
+
+**For Slash Commands:**
+
+Users can also invoke reviews explicitly via commands:
+- `/gemini-review [files]` - Quick review with smart defaults
+- `/gemini-batch-review <paths>` - Batch review with progress tracking
+
+When user uses a slash command, Claude should:
+1. Parse command arguments (file patterns, model selection, focus area)
+2. Use JSON output format for structured parsing
+3. Display formatted results with clear sections
+4. Show token usage inline
+
+### Choosing the Right Approach
+
+**Use Natural Language (Skill):**
+- User asks conversationally for review
+- Need Claude's own analysis + Gemini's perspective
+- Complex, nuanced review requirements
+- User wants discussion/Q&A about findings
+
+**Use `/gemini-review` Command:**
+- User wants quick, explicit review
+- Specific file patterns provided
+- Repeatable workflow (same command pattern)
+- User prefers command-style interface
+
+**Use `/gemini-batch-review` Command:**
+- Reviewing 5+ files simultaneously
+- User wants progress visibility
+- Batch processing workflow
+- Multiple directories/patterns
+
+### JSON Output Best Practices
+
+**Always use JSON format for:**
+- Slash commands (better parsing)
+- Batch reviews (aggregate results)
+- When showing token usage
+- Programmatic workflows
+
+**Parse JSON response:**
+```bash
+result=$(gemini -p "..." --output-format json)
+response=$(echo "$result" | jq -r '.response')
+tokens=$(echo "$result" | jq -r '.stats.models | to_entries | map(.value.tokens.total) | add // 0')
+```
+
+**Fallback if JSON fails:**
+```bash
+if echo "$result" | jq . > /dev/null 2>&1; then
+    # Parse JSON
+else
+    # Use text output instead
+    result=$(gemini -p "..." --output-format text)
+fi
+```
 
 ### What Claude Should NOT Do
 
@@ -438,19 +819,38 @@ Claude should autonomously invoke Gemini when:
 - Don't replace Claude's own analysis - augment it
 - Don't call Gemini repeatedly for the same content
 - Don't use Gemini for simple questions that Claude can answer directly
+- Don't use stream-json for single-file reviews (use regular JSON)
 
 ### Example Workflow
 
+**Natural Language Request:**
 ```
 User: "Can you review my authentication code for security issues?"
 
 Claude actions:
 1. Read the auth code files
 2. Perform own security analysis
-3. Construct Gemini prompt with specific security focus
-4. Call: gemini -m gemini-2.5-pro -p "Security review: @src/auth.js"
+3. Call gemini with JSON output:
+   gemini -m gemini-2.5-pro -p "Security review: @src/auth.js" --output-format json
+4. Parse JSON response
 5. Compare Gemini's findings with own analysis
-6. Present comprehensive security report to user
+6. Present comprehensive security report with token usage
+```
+
+**Slash Command Request:**
+```
+User: /gemini-review src/auth/* --model pro --focus security
+
+Claude actions:
+1. Parse command: files=src/auth/*, model=pro, focus=security
+2. Construct focused prompt for security review
+3. Call gemini with JSON output
+4. Parse and format results
+5. Display formatted findings with:
+   - File-by-file breakdown
+   - Severity levels (errors/warnings)
+   - Token usage
+   - Summary
 ```
 
 ## Summary

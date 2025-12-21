@@ -1,6 +1,6 @@
 {
   "name": "gemini-review",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Get a second opinion from Google's Gemini on code changes, plans, documentation, architecture, and other work products. Use when you need independent validation, cross-checking critical decisions, catching blind spots, or getting multiple AI perspectives on important work.",
   "author": {
     "name": "Brandon Greenwell",
@@ -9,6 +9,10 @@
   "homepage": "https://github.com/bgreenwell/claude-plugins/tree/main/gemini-review",
   "repository": "https://github.com/bgreenwell/claude-plugins",
   "license": "MIT",
-  "keywords": ["gemini", "review", "validation", "second-opinion", "llm", "code-review", "architecture", "security"],
-  "skills": ["./skills/gemini-review.md"]
+  "keywords": ["gemini", "review", "validation", "second-opinion", "llm", "code-review", "architecture", "security", "batch-review", "json-output"],
+  "skills": ["./skills/gemini-review.md"],
+  "commands": [
+    "./commands/gemini-review.md",
+    "./commands/gemini-batch-review.md"
+  ]
 }

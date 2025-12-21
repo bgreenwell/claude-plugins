@@ -2,6 +2,19 @@
 
 Get independent second opinions from Google's Gemini AI on your code, plans, documentation, and architecture decisions.
 
+## What's New in v1.2
+
+**Slash Commands:**
+- `/gemini-review` - Quick review with smart defaults
+- `/gemini-batch-review` - Batch review with real-time progress
+
+**Enhanced Capabilities:**
+- JSON output for structured results and token tracking
+- Stream-JSON for real-time progress on long reviews
+- Directory context support for architectural reviews
+- Improved error handling with retry logic
+- Better model selection guidance
+
 ## Overview
 
 The Gemini Review plugin enables Claude Code to leverage Google's Gemini AI for independent validation and cross-checking of critical work. Use it when you need multiple AI perspectives, want to catch blind spots, or require validation before making important decisions.
@@ -70,7 +83,62 @@ Ask Claude:
 
 ## Usage
 
-Simply ask Claude naturally for reviews or second opinions. Claude will autonomously decide when to consult Gemini.
+### Three Ways to Get Reviews
+
+#### 1. Natural Language (Most Flexible)
+
+Simply ask Claude naturally. Claude will autonomously consult Gemini:
+
+```
+"Review my changes to auth.js for security issues"
+"Get a second opinion on this refactoring"
+"Should I use Redis or Memcached for session storage?"
+"Are my tests comprehensive enough?"
+```
+
+#### 2. Quick Command (Explicit Review)
+
+Use `/gemini-review` for quick, targeted reviews:
+
+```bash
+# Review staged files
+/gemini-review
+
+# Review specific files
+/gemini-review src/auth/login.js
+
+# Security-focused review
+/gemini-review src/auth/* --focus security
+
+# Deep review with Pro model
+/gemini-review src/api/* --model pro
+```
+
+**Options:**
+- `[file-pattern]` - Files to review (default: git staged files)
+- `--model flash|pro` - Model selection (default: flash)
+- `--focus area` - Focus area (security, performance, testing, etc.)
+
+#### 3. Batch Review (Multiple Files)
+
+Use `/gemini-batch-review` for reviewing many files with progress:
+
+```bash
+# Review multiple directories
+/gemini-batch-review src/ tests/ docs/
+
+# Security audit across modules
+/gemini-batch-review src/auth src/api --focus security --model pro
+
+# Performance review
+/gemini-batch-review src/services src/utils --focus performance
+```
+
+**Features:**
+- Real-time progress tracking
+- Aggregated results by file
+- Optimal for 5-20 files
+- Shows token usage
 
 ### Example Prompts
 
@@ -126,6 +194,34 @@ When you ask for a review or second opinion:
 
 ## Features
 
+### Slash Commands (New in v1.2)
+
+**`/gemini-review`**
+- Quick review with smart defaults
+- Reviews staged files if no pattern provided
+- Supports model and focus area selection
+- Shows structured results with token usage
+
+**`/gemini-batch-review`**
+- Review 5+ files with real-time progress
+- Stream-JSON for progress tracking
+- Aggregated results by file
+- Priority recommendations
+
+### JSON Output Support (New in v1.2)
+
+- Structured, parseable output
+- Token usage tracking for cost awareness
+- Better result formatting
+- Integration with automation workflows
+
+### Stream-JSON Progress (New in v1.2)
+
+- Real-time progress updates for long reviews
+- Batch processing visibility
+- Event-based monitoring
+- Optimal for multiple file reviews
+
 ### Structured Review Templates
 
 Claude has access to proven review templates for:
@@ -139,12 +235,17 @@ Claude has access to proven review templates for:
 ### Model Selection
 
 Claude automatically chooses the right Gemini model:
-- **gemini-2.5-flash**: Fast, for quick reviews
+- **gemini-2.5-flash**: Fast, for quick reviews (default)
 - **gemini-2.5-pro**: Thorough, for critical decisions
 
 You can also request specific models:
 ```
 "Use Gemini Pro for a thorough security audit"
+```
+
+Or specify via command:
+```
+/gemini-review src/auth/* --model pro
 ```
 
 ### Multi-File Support
@@ -154,6 +255,11 @@ Review multiple related files together:
 "Review these auth files for consistency: @src/auth.js @src/session.js @tests/auth.test.js"
 ```
 
+Or use batch command:
+```
+/gemini-batch-review src/auth src/session tests/auth
+```
+
 ### Context-Aware Reviews
 
 Claude automatically provides relevant context to Gemini about:
@@ -161,6 +267,15 @@ Claude automatically provides relevant context to Gemini about:
 - Your specific requirements
 - Constraints and decisions
 - What aspects to focus on
+
+### Directory Context (New in v1.2)
+
+For architectural reviews, provide broader codebase context:
+```
+"Review this architecture with full context"
+```
+
+Uses `--include-directories` for system-wide understanding.
 
 ## Best Practices
 
@@ -337,9 +452,81 @@ Brandon Greenwell
 - GitHub: [@bgreenwell](https://github.com/bgreenwell)
 - Email: [email protected]
 
+## Command Reference
+
+### `/gemini-review`
+
+Quick review with smart defaults.
+
+**Syntax:**
+```
+/gemini-review [file-pattern] [--model flash|pro] [--focus area]
+```
+
+**Examples:**
+```bash
+# Review staged files
+/gemini-review
+
+# Review specific pattern
+/gemini-review src/auth/*
+
+# Security-focused
+/gemini-review src/api/* --focus security
+
+# Deep review
+/gemini-review src/core.js --model pro --focus performance
+```
+
+**Output includes:**
+- File-by-file findings
+- Severity indicators (✓ ⚠️ ❌)
+- Actionable recommendations
+- Token usage
+
+### `/gemini-batch-review`
+
+Batch review with real-time progress.
+
+**Syntax:**
+```
+/gemini-batch-review <paths...> [--model flash|pro] [--focus area]
+```
+
+**Examples:**
+```bash
+# Multiple directories
+/gemini-batch-review src/ tests/ docs/
+
+# Security audit
+/gemini-batch-review src/auth src/api --focus security --model pro
+
+# Performance review
+/gemini-batch-review src/services --focus performance
+```
+
+**Features:**
+- Real-time progress: "Processing... [5/10] (50%)"
+- Aggregated results
+- Priority recommendations
+- Token usage and cost estimate
+
+**Best for:** 5-20 files
+
 ## Changelog
 
-### v1.1.0 (Current)
+### v1.2.0 (Current)
+- **NEW:** Added `/gemini-review` slash command for quick reviews
+- **NEW:** Added `/gemini-batch-review` command for batch processing
+- **NEW:** JSON output support for structured results
+- **NEW:** Stream-JSON for real-time progress tracking
+- **NEW:** Directory context support (`--include-directories`)
+- **IMPROVED:** Enhanced error handling with retry logic
+- **IMPROVED:** Better model selection guidance
+- **IMPROVED:** Expanded examples with new capabilities
+- No breaking changes - fully backward compatible
+
+### v1.1.0
 - Added comprehensive SKILL.md with review templates
 - Enhanced with structured prompts for different review types
 - Added security audit templates
