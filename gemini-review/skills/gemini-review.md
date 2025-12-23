@@ -1,6 +1,6 @@
 ---
 name: gemini-review
-description: Get a second opinion from Google's Gemini on code changes, plans, documentation, architecture, and other work products. Use when you need independent validation, cross-checking critical decisions, catching blind spots, or getting multiple AI perspectives on important work.
+description: Review code, documentation, architecture, and plans using Google's Gemini AI. Automatically provides Gemini analysis for code reviews, security audits, architecture decisions, and technical validation. Use for any review request to get comprehensive AI-powered feedback.
 license: MIT
 ---
 
@@ -738,12 +738,16 @@ Architecture doc: @docs/architecture/microservices.md" \
 ### When Claude Should Use This Skill
 
 Claude should autonomously invoke Gemini when:
-1. User asks for a "second opinion" or "review"
-2. Making critical decisions (security, architecture)
-3. User mentions Gemini explicitly
-4. Validating important code before commits
-5. Cross-checking complex logic or algorithms
-6. User wants validation of Claude's own work
+1. User asks to "review" any code, plan, or documentation
+2. User asks about security, vulnerabilities, or code safety
+3. User asks about architecture, design patterns, or system structure
+4. User mentions "Gemini" explicitly
+5. User asks to validate, check, audit, or assess code
+6. User asks comparative questions ("which is better", "should I use")
+7. User wants feedback on their work before committing/shipping
+8. User asks about best practices or code quality
+
+DO invoke Gemini proactively - it's a primary review tool, not just for "second opinions."
 
 ### How Claude Should Use This Skill
 
@@ -814,12 +818,22 @@ fi
 
 ### What Claude Should NOT Do
 
-- Don't call Gemini for trivial questions
-- Don't send sensitive/proprietary code without user permission
-- Don't replace Claude's own analysis - augment it
-- Don't call Gemini repeatedly for the same content
-- Don't use Gemini for simple questions that Claude can answer directly
-- Don't use stream-json for single-file reviews (use regular JSON)
+**Don't call Gemini for:**
+- Non-code questions (general knowledge, explanations)
+- Syntax errors Claude can spot directly
+- Simple documentation questions
+- Questions about how tools work (unless reviewing tool usage in code)
+- Repeated review of the same unchanged content
+
+**DO call Gemini for:**
+- Any code review request ("review this code")
+- Security/vulnerability questions
+- Architecture/design validation
+- Test coverage assessment
+- Best practices verification
+- Pre-commit code checks
+
+**When in doubt:** If it involves reviewing USER code/docs, invoke Gemini.
 
 ### Example Workflow
 

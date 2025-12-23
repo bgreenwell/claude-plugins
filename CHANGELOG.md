@@ -5,6 +5,21 @@ All notable changes to the claude-plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-12-22 (gemini-review)
+
+### Fixed
+- **Critical fix**: Skill auto-trigger for natural language review requests
+  - Updated YAML description to position Gemini as primary review tool (not just "second opinions")
+  - Expanded trigger conditions from 6 to 8 items with broader verbs (review, validate, check, audit, assess)
+  - Added explicit "DO invoke Gemini proactively" guidance
+  - Restructured "What NOT to Do" section as Do/Don't format
+  - Made it clear: if reviewing user code/docs, invoke Gemini
+
+### Impact
+- Natural language requests like "Review test.js" now trigger the skill automatically
+- No longer requires "second opinion" or "Gemini" keywords
+- Skill works as intended for any code review request
+
 ## [1.2.0] - 2025-12-21 (gemini-review)
 
 ### Added

@@ -14,7 +14,7 @@
       "name": "gemini-review",
       "source": "./gemini-review",
       "description": "Get a second opinion from Google's Gemini on code changes, plans, documentation, architecture, and other work products. Use when you need independent validation, cross-checking critical decisions, catching blind spots, or getting multiple AI perspectives on important work.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "Brandon Greenwell",
         "email": "[email protected]"
