@@ -5,6 +5,18 @@ All notable changes to the claude-plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-19 (xquik)
+
+### Added
+
+- Xquik plugin for source-backed REST API, MCP, webhook, and X data workflow planning
+- Installation, security, troubleshooting, and public documentation guidance
+- Marketplace registration and validation workflow coverage
+
+### Fixed
+
+- Upgraded the validation workflow from `actions/cache` v3 to v4
+
 ## [1.2.1] - 2025-12-22 (gemini-review)
 
 ### Fixed
