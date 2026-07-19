@@ -1,0 +1,14 @@
+{
+  "name": "xquik",
+  "version": "1.0.0",
+  "description": "Plan Xquik REST API, MCP, webhook, and X data automation workflows with source-backed setup guidance.",
+  "author": {
+    "name": "Xquik",
+    "url": "https://xquik.com"
+  },
+  "homepage": "https://docs.xquik.com",
+  "repository": "https://github.com/bgreenwell/claude-plugins",
+  "license": "MIT",
+  "keywords": ["xquik", "x", "api", "mcp", "webhooks", "automation", "social-data"],
+  "skills": ["./skills/xquik.md"]
+}

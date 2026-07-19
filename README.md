@@ -36,6 +36,21 @@ Multi-layered plagiarism detection for academic writing using LLM analysis, loca
 
 [→ View Plugin Details](./plagiarism-review/README.md)
 
+### 🔌 [Xquik](./xquik)
+
+Plan Xquik REST API, MCP, webhook, and X data automation workflows with source-backed setup guidance.
+
+**Status:** ✅ Stable v1.0.0
+
+**Use cases:**
+- Choose between Xquik REST API, MCP, and webhook workflows
+- Plan X data extraction, monitoring, and automation tasks
+- Keep API examples tied to Xquik's public docs and OpenAPI document
+
+**Prerequisites:** Requires an Xquik account and API key for REST API requests
+
+[→ View Plugin Details](./xquik/README.md)
+
 ---
 
 ## Installation
@@ -86,6 +101,12 @@ Want to create your own plugins? Check out the [official documentation](https://
 claude-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace catalog
+├── xquik/                         # Plugin: Xquik API, MCP, and webhook planning
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   ├── skills/
+│   │   └── xquik.md
+│   └── README.md
 ├── gemini-review/                 # Plugin: Second opinions from Gemini
 │   ├── .claude-plugin/
 │   │   └── plugin.json

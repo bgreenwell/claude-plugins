@@ -22,7 +22,7 @@ jobs:
           toolchain: stable
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -50,6 +50,10 @@ jobs:
         run: |
           cforge validate --path plagiarism-review
 
+      - name: Validate xquik plugin
+        run: |
+          cforge validate --path xquik
+
       - name: Check for plugin metadata consistency
         run: |
           echo "Checking version consistency..."
@@ -57,13 +61,16 @@ jobs:
           # Extract versions from plugin.json files
           GEMINI_VERSION=$(jq -r '.version' gemini-review/.claude-plugin/plugin.json)
           PLAGIARISM_VERSION=$(jq -r '.version' plagiarism-review/.claude-plugin/plugin.json)
+          XQUIK_VERSION=$(jq -r '.version' xquik/.claude-plugin/plugin.json)
 
           # Extract versions from marketplace.json
           MARKETPLACE_GEMINI=$(jq -r '.plugins[] | select(.name=="gemini-review") | .version' .claude-plugin/marketplace.json)
           MARKETPLACE_PLAGIARISM=$(jq -r '.plugins[] | select(.name=="plagiarism-review") | .version' .claude-plugin/marketplace.json)
+          MARKETPLACE_XQUIK=$(jq -r '.plugins[] | select(.name=="xquik") | .version' .claude-plugin/marketplace.json)
 
           echo "gemini-review: plugin.json=$GEMINI_VERSION, marketplace.json=$MARKETPLACE_GEMINI"
           echo "plagiarism-review: plugin.json=$PLAGIARISM_VERSION, marketplace.json=$MARKETPLACE_PLAGIARISM"
+          echo "xquik: plugin.json=$XQUIK_VERSION, marketplace.json=$MARKETPLACE_XQUIK"
 
           # Check if versions match
           if [ "$GEMINI_VERSION" != "$MARKETPLACE_GEMINI" ]; then
@@ -73,6 +80,11 @@ jobs:
 
           if [ "$PLAGIARISM_VERSION" != "$MARKETPLACE_PLAGIARISM" ]; then
             echo "::error::Version mismatch for plagiarism-review: $PLAGIARISM_VERSION (plugin.json) vs $MARKETPLACE_PLAGIARISM (marketplace.json)"
+            exit 1
+          fi
+
+          if [ "$XQUIK_VERSION" != "$MARKETPLACE_XQUIK" ]; then
+            echo "::error::Version mismatch for xquik: $XQUIK_VERSION (plugin.json) vs $MARKETPLACE_XQUIK (marketplace.json)"
             exit 1
           fi
 
@@ -87,3 +99,4 @@ jobs:
           echo "Validated plugins:"
           echo "  - gemini-review"
           echo "  - plagiarism-review"
+          echo "  - xquik"
